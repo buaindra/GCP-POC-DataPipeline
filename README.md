@@ -35,10 +35,10 @@
 	--temp_location gs://$GCS_BUCKET_01/tmp/ 
 
 ### Step6: Verify the output
-> # List the output files
+> #List the output files
 	gsutil ls -lh "gs://$GCS_BUCKET_01/results/outputs*"  
 > 
-> # View the results in the output files:
+> #View the results in the output files:
 	gsutil cat "gs://$GCS_BUCKET_01/results/outputs*"
 
 
