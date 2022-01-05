@@ -10,11 +10,11 @@
 	git clone git@github.com:buaindra/GCP-POC-DataPipeline.git
 	cd GCP-POC-DataPipeline
 	git pull origin main
----
+
 
 ### Step2: Execute the Onetime Startup Script
 	bash onetime_startup-script.sh
----
+
 
 ### Step3: Create Python Virtual Environment and install the Apache Beam SDKs
 	python3 -m virtualenv env
@@ -24,6 +24,7 @@
 
 ### Step4: Run the Beam Pipeline Locally for testing
 	python hello-beam.py --project $PROJECT_ID --topic $PUBSUB_TOPIC --output beam.out --runner DirectRunner
+	python3 gcs_to_bq_beam_batch.py --runner DirectRunner --project $DEVSHELL_PROJECT_ID --temp_location gs://poc01-330806/temp --staging_location gs://poc01-330806/output --region us-central1 --job_name indianstock
 
 ### Step5: Then run the pipeline in dataflow runner
 	python -m apache_beam.examples.wordcount \

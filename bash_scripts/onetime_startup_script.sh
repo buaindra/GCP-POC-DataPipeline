@@ -1,9 +1,9 @@
 # Environment Variable
-export PROJECT_ID=indranil-24012994-01 \
+export PROJECT_ID=indranil-24011994-03\
 export BILLING_ACCOUNT_ID=01F748-D68B6C-7BFEF3 \
 export SERVICE_ACCOUNT_ID=sa-composer-dataflow \
 export REGION=us-central1 \
-export GCS_BUCKET_01="gcs-$PROJECT_ID" \
+export GCS_BUCKET_01=$PROJECT_ID \
 export PUBSUB_TOPIC=pubsub-topic-poc-01 \
 export PUBSUB_SUBSCRIPTION_01=pubsub-subscription-poc-01 \
 export BIGQUERY_DATASET=poc_dataflow \
