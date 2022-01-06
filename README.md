@@ -15,18 +15,31 @@
 ### Step2: Execute the Onetime Startup Script
 	bash onetime_startup-script.sh
 
+### Step3: Setup AWS connection in Composer/Airflow env 
+#### 1. On Airflow UI, go to Admin > Connections
+#### 2. Create/Edit a new connection (aws_default) with the following attributes:
+	Conn Id: aws_default
+	Conn Type: amazon web services
+	Extra: {"aws_access_key_id":"_your_aws_access_key_id_", "aws_secret_access_key": "_your_aws_secret_access_key_"}
+	Leave all the other fields (Host, Schema, Login) blank.
+#### 3. Click on newly created Composer Env from GCP Console -> PYPI PACKAGES -> Edit -> Add below packages
+	boto3, ==1.18.65
+	apache-airflow-providers-amazon, -
+	apache-airflow-backport-providers-google, - (**not required)
+	apache-airflow-backport-providers-sftp, - (**not required)
+	apache-airflow-backport-providers-ssh, - (**not required)
 
-### Step3: Create Python Virtual Environment and install the Apache Beam SDKs
+### Step4: Create Python Virtual Environment and install the Apache Beam SDKs
 	python3 -m virtualenv env
 	source env/bin/activate
 ---
 	pip install -m 'apache-beam[gcp]'
 
-### Step4: Run the Beam Pipeline Locally for testing
+### Step5: Run the Beam Pipeline Locally for testing
 	python hello-beam.py --project $PROJECT_ID --topic $PUBSUB_TOPIC --output beam.out --runner DirectRunner
 	python3 gcs_to_bq_beam_batch.py --runner DirectRunner --project $DEVSHELL_PROJECT_ID --temp_location gs://poc01-330806/temp --staging_location gs://poc01-330806/output --region us-central1 --job_name indianstock
 
-### Step5: Then run the pipeline in dataflow runner
+### Step6: Then run the pipeline in dataflow runner
 	python -m apache_beam.examples.wordcount \
 	--region $REGION \
 	--input gs://dataflow-samples/shakespeare/kinglear.txt \
@@ -35,7 +48,7 @@
 	--project $PROJECT_ID \
 	--temp_location gs://$GCS_BUCKET_01/tmp/ 
 
-### Step6: Verify the output
+### Step7: Verify the output
 > #List the output files
 > 
 	gsutil ls -lh "gs://$GCS_BUCKET_01/results/outputs*"  
