@@ -13,7 +13,7 @@
 
 
 ### Step2: Execute the Onetime Startup Script
-	bash onetime_startup-script.sh
+	bash onetime_startup_script.sh
 
 ### Step3: Setup AWS connection in Composer/Airflow env 
 #### 1. On Airflow UI, go to Admin > Connections
@@ -22,7 +22,7 @@
 	Conn Type: amazon web services
 	Extra: {"aws_access_key_id":"_your_aws_access_key_id_", "aws_secret_access_key": "_your_aws_secret_access_key_"}
 	Leave all the other fields (Host, Schema, Login) blank.
-#### 3. Click on newly created Composer Env from GCP Console -> PYPI PACKAGES -> Edit -> Add below packages
+### Step3. Click on newly created Composer Env from GCP Console -> PYPI PACKAGES -> Edit -> Add below packages
 	boto3, ==1.18.65
 	apache-airflow-providers-amazon, -
 	apache-airflow-backport-providers-google, - (**not required)
@@ -36,25 +36,18 @@
 	pip install -m 'apache-beam[gcp]'
 
 ### Step5: Run the Beam Pipeline Locally for testing
-	python hello-beam.py --project $PROJECT_ID --topic $PUBSUB_TOPIC --output beam.out --runner DirectRunner
-	python3 gcs_to_bq_beam_batch.py --runner DirectRunner --project $DEVSHELL_PROJECT_ID --temp_location gs://poc01-330806/temp --staging_location gs://poc01-330806/output --region us-central1 --job_name indianstock
+	python3 gcs_to_bq_beam_batch.py --runner DirectRunner --project $DEVSHELL_PROJECT_ID --temp_location gs://poc01-330806/temp --staging_location gs://poc01-330806/output --region $REGION --job_name indianstock
 
 ### Step6: Then run the pipeline in dataflow runner
-	python -m apache_beam.examples.wordcount \
+	python3 -m gcs_to_bq_beam_batch.py \
 	--region $REGION \
-	--input gs://dataflow-samples/shakespeare/kinglear.txt \
-	--output gs://$GCS_BUCKET_01/results/outputs \
+	--job_name indianstock
 	--runner DataflowRunner \
-	--project $PROJECT_ID \
-	--temp_location gs://$GCS_BUCKET_01/tmp/ 
+	--project $DEVSHELL_PROJECT_ID \
+	--temp_location gs://poc01-330806/temp \
+    --staging_location gs://poc01-330806/output
 
-### Step7: Verify the output
-> #List the output files
-> 
-	gsutil ls -lh "gs://$GCS_BUCKET_01/results/outputs*"  
-> 
-> #View the results in the output files:
-> 
-	gsutil cat "gs://$GCS_BUCKET_01/results/outputs*"
+### Step7: Verify the output in Bigquery Table
+
 
 

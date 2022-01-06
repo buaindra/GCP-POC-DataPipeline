@@ -42,7 +42,7 @@ if __name__ == "__main__":
     p = beam.Pipeline(options=PipelineOptions())
 
     (p | 'ReadData' >> beam.io.ReadFromText('gs://poc01-330806/input/National_Stock_Exchange_of_India_Ltd.csv', skip_header_lines =1)
-       | 'SplitData' >> beam.Map(lambda x: x.split(','))
+       | 'SplitData' >> beam.Map(lambda x: x.split(r',(?=")'))
        | 'FormatToDict' >> beam.Map(lambda x: {"Symbol": x[0],"Open": x[1],"High": x[2],"Low": x[3],"LTP": x[4],"Chng": x[5],\
             "PCChng": x[6],"Volume": x[7],"Turnover": x[8],"_52w_H": x[9],"_52w_L": x[10],"_365d_PC_chng": x[11],"_30d_PC_chng": x[12]}) 
        | 'DeleteIncompleteData' >> beam.Filter(discard_incomplete)
@@ -52,5 +52,4 @@ if __name__ == "__main__":
            '{0}:poc_dataflow.detailed_view'.format(project_id),
            schema=v_schema,
            write_disposition=beam.io.BigQueryDisposition.WRITE_APPEND))
-    result = p.run()
-    result.wait_until_finish()
+    result = p.run().wait_until_finish()

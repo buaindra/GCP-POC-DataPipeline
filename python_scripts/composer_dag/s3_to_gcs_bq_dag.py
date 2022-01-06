@@ -1,4 +1,5 @@
 #Importing Python Libraries
+import config
 import os
 from datetime import datetime, timedelta
 from airflow import models
@@ -7,7 +8,7 @@ from airflow.operators import bash_operator
 from airflow.providers.google.cloud.transfers.s3_to_gcs import S3ToGCSOperator
 from airflow.contrib.operators.gcs_to_bq import GoogleCloudStorageToBigQueryOperator
 #from airflow.providers.amazon.aws.hooks.s3 import S3Hook
-from airflow.utils import trigger_rule
+#from airflow.utils import trigger_rule
 
 
 yesterday = datetime.today() - timedelta(days=1)
@@ -30,12 +31,12 @@ default_args = {
 #BQ_TABLE=os.environment.get("BQ_TABLE")
 
 
-GCP_PROJECTID="poc01-330806"
-GCS_BUCKET="poc01-330806-database-migration"
-AWS_BUCKET="s3-bucket-test-0001"
-AWS_FILE_PREFIX="results"
-BQ_DATASET="1234test"
-BQ_TABLE="test01"
+GCP_PROJECTID=config.PROJECTID
+GCS_BUCKET=config.PROJECTID
+AWS_BUCKET=config.CON_AWS_BUCKET
+AWS_FILE_PREFIX=""
+BQ_DATASET=config.CON_BIGQUERY_DATASET
+BQ_TABLE=config.CON_BIGQUERY_TABLE_Composer
 
 #Initiate the DAG
 with models.DAG (
@@ -52,7 +53,7 @@ with models.DAG (
     
     print_dag_starttime = bash_operator.BashOperator(
         task_id = "print_dag_starttime",
-        bash_command = "echo S3 to GCS data transfer started!!"
+        bash_command = "echo S3 to GCS data transfer started @ $(date)"
     )
     
     s3_to_gcs = S3ToGCSOperator(
@@ -61,12 +62,12 @@ with models.DAG (
         prefix = AWS_FILE_PREFIX,
         aws_conn_id = 'aws_default',
         verify = False,
-        dest_gcs = "gs://" + GCS_BUCKET
+        dest_gcs = "gs://" + GCS_BUCKET + "/input"
     )
     
-    gcs_to_bq = GoogleCloudStorageToBigQueryOperator(
+    comp_gcs_to_bq = GoogleCloudStorageToBigQueryOperator(
         task_id='gcs_to_bq',
-        bucket=GCS_BUCKET,
+        bucket=GCS_BUCKET + "/input",
         source_objects=['*.csv'],
         destination_project_dataset_table=GCP_PROJECTID+"."+BQ_DATASET+"."+BQ_TABLE,
         skip_leading_rows=1,
@@ -75,8 +76,13 @@ with models.DAG (
         write_disposition='WRITE_APPEND',
         source_format='CSV'
     )
+
+    print_dag_endtime = bash_operator.BashOperator(
+        task_id = "print_dag_starttime",
+        bash_command = "echo S3 to GCS data transfer ended @ $(date)"
+    )
     
-    wait_dag >> print_dag_starttime >> s3_to_gcs >> gcs_to_bq
+    wait_dag >> print_dag_starttime >> s3_to_gcs >> comp_gcs_to_bq >> print_dag_endtime
     
     
     
