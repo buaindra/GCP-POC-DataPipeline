@@ -13,7 +13,7 @@
 
 
 ### Step2: Execute the Onetime Startup Script
-	bash onetime_startup_script.sh
+	bash bash ~/GCP-POC-DataPipeline/bash_scripts/onetime_startup_script.sh
 
 ### Step3: Setup AWS connection in Composer/Airflow env 
 #### 1. On Airflow UI, go to Admin > Connections

@@ -1,5 +1,5 @@
 #!/bin/bash
-source python_scripts/config.py
+source ~/GCP-POC-DataPipeline/bash_scripts/config.conf
 
 # Environment Variable
 export PROJECT_ID="$PROJECTID" \
@@ -12,9 +12,9 @@ export PUBSUB_SUBSCRIPTION_01=pubsub-subscription-poc-01 \
 export BIGQUERY_DATASET="$CON_BIGQUERY_DATASET" \
 export BIGQUERY_TABLE_01="$CON_BIGQUERY_TABLE_Dataflow" \
 export BIGQUERY_TABLE_02="$CON_BIGQUERY_TABLE_Composer" \
-export $COMPOSER_ENV_NAME=bq-composer-env \
-export $COMPOSER_IMAGE_VERSION=composer-1.17.7-airflow-2.1.4 \
-export $DAG_SOURCE_PATH=python_scripts/composer_dag/s3_to_gcs_bq_dag.py
+export COMPOSER_ENV_NAME=bq-composer-env \
+export COMPOSER_IMAGE_VERSION=composer-1.17.7-airflow-2.1.4 \
+export DAG_SOURCE_PATH=python_scripts/composer_dag/s3_to_gcs_bq_dag.py
 
 echo "Variable Setup Done"
 
