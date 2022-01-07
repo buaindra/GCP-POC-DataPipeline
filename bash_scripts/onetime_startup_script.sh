@@ -14,7 +14,7 @@ export BIGQUERY_TABLE_01="$CON_BIGQUERY_TABLE_Dataflow" \
 export BIGQUERY_TABLE_02="$CON_BIGQUERY_TABLE_Composer" \
 export COMPOSER_ENV_NAME=bq-composer-env \
 export COMPOSER_IMAGE_VERSION=composer-1.17.7-airflow-2.1.4 \
-export DAG_SOURCE_PATH=python_scripts/composer_dag/s3_to_gcs_bq_dag.py
+export DAG_SOURCE_PATH=~/GCP-POC-DataPipeline/python_scripts/composer_dag/s3_to_gcs_bq_dag.py
 
 echo "Variable Setup Done"
 
@@ -62,11 +62,11 @@ gsutil cp a.txt gs://$GCS_BUCKET_01/output/
 gsutil cp a.txt gs://$GCS_BUCKET_01/temp/
 gsutil cp a.txt gs://$GCS_BUCKET_01/stage/
 
-gsutil rm gs://$GCS_BUCKET_01/input/a.txt
-gsutil rm gs://$GCS_BUCKET_01/output/a.txt
-gsutil rm gs://$GCS_BUCKET_01/temp/a.txt
-gsutil rm gs://$GCS_BUCKET_01/stage/a.txt
-
+#gsutil rm gs://$GCS_BUCKET_01/input/a.txt
+#gsutil rm gs://$GCS_BUCKET_01/output/a.txt
+#gsutil rm gs://$GCS_BUCKET_01/temp/a.txt
+#gsutil rm gs://$GCS_BUCKET_01/stage/a.txt
+gsutil cp ~/GCP-POC-DataPipeline/python_scripts/beam_pipeline/gcs_to_bq_beam_batch.py gs://$GCS_BUCKET_01/
 
 # Create Pub/Sub Topic
 #echo "pubsub topic is going to be created..@ $(date)"
@@ -84,9 +84,9 @@ sleep 5s
 bq mk --location $REGION --table $PROJECT_ID:$BIGQUERY_DATASET.$BIGQUERY_TABLE_02
 
 #Create/Setup Composer Env 
+#--env-variables GCP_PROJECTID=$PROJECT_ID,GCP_BUCKET=$GCP_BUCKET,AWS_BUCKET=$AWS_BUCKET,AWS_FILE_PREFIX=$AWS_FILE_PREFIX,BQ_DATASET=$BQ_DATASET,BQ_TABLE=$BQ_TABLE \
 echo "Composer env is going to be created @ $(date)"
 gcloud composer environments create $COMPOSER_ENV_NAME \
-#--env-variables GCP_PROJECTID=$PROJECT_ID,GCP_BUCKET=$GCP_BUCKET,AWS_BUCKET=$AWS_BUCKET,AWS_FILE_PREFIX=$AWS_FILE_PREFIX,BQ_DATASET=$BQ_DATASET,BQ_TABLE=$BQ_TABLE \
 --location $REGION \
 --image-version $COMPOSER_IMAGE_VERSION
 

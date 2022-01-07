@@ -48,6 +48,32 @@
     --staging_location gs://poc01-330806/output
 
 ### Step7: Verify the output in Bigquery Table
+    SELECT * FROM `indranil-24011994-04.poc_composer_dataflow.df_stock_details` LIMIT 1000
+
+### Extras-
+    #Dag file move to composer
+    gcloud composer environments storage dags import --environment bq-composer-env --source ~/GCP-POC-DataPipeline/python_scripts/composer_dag/s3_to_gcs_bq_dag.py --location us-central1
+
+    #Beam file move to GCS
+    gsutil cp ~/GCP-POC-DataPipeline/python_scripts/beam_pipeline/gcs_to_bq_beam_batch.py gs://indranil-24011994-04/
+
+    #Run the Beam from Cloudshell
+    python3 -m gcs_to_bq_beam_batch.py \
+    --region us-central1 \
+    --job_name indianstock \
+    --runner DataflowRunner \
+    --project $DEVSHELL_PROJECT_ID \
+    --temp_location gs://indranil-24011994-04/temp \
+    --staging_location gs://indranil-24011994-04/output
+---
+    cp ~/GCP-POC-DataPipeline/python_scripts/beam_pipeline/gcs_to_bq_beam_batch.py ./
+
+    python3 gcs_to_bq_beam_batch.py \
+    --region us-central1 \
+    --job_name indianstock \
+    --runner DirectRunner \
+    --project $DEVSHELL_PROJECT_ID \
+    --temp_location gs://indranil-24011994-04/temp  
 
 
 

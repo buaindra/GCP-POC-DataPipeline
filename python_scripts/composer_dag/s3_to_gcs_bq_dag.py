@@ -1,5 +1,5 @@
 #Importing Python Libraries
-import config
+
 import os
 from datetime import datetime, timedelta
 from airflow import models
@@ -7,6 +7,7 @@ from airflow import DAG
 from airflow.operators import bash_operator
 from airflow.providers.google.cloud.transfers.s3_to_gcs import S3ToGCSOperator
 from airflow.contrib.operators.gcs_to_bq import GoogleCloudStorageToBigQueryOperator
+from airflow.providers.apache.beam.operators.beam import BeamRunPythonPipelineOperator
 #from airflow.providers.amazon.aws.hooks.s3 import S3Hook
 #from airflow.utils import trigger_rule
 
@@ -31,12 +32,14 @@ default_args = {
 #BQ_TABLE=os.environment.get("BQ_TABLE")
 
 
-GCP_PROJECTID=config.PROJECTID
-GCS_BUCKET=config.PROJECTID
-AWS_BUCKET=config.CON_AWS_BUCKET
-AWS_FILE_PREFIX=""
-BQ_DATASET=config.CON_BIGQUERY_DATASET
-BQ_TABLE=config.CON_BIGQUERY_TABLE_Composer
+GCP_PROJECTID="indranil-24011994-04"
+GCS_BUCKET="indranil-24011994-04"
+AWS_BUCKET="s3-bucket-test-0001"
+AWS_FILE_PREFIX="National_Stock_Exchange_of_India_Ltd"
+BQ_DATASET="poc_composer_dataflow"
+BQ_TABLE="comp_stock_details"
+GCS_PYTHON="gs://indranil-24011994-04/gcs_to_bq_beam_batch.py"
+GCS_OUTPUT="gs://indranil-24011994-04/output"
 
 #Initiate the DAG
 with models.DAG (
@@ -62,13 +65,13 @@ with models.DAG (
         prefix = AWS_FILE_PREFIX,
         aws_conn_id = 'aws_default',
         verify = False,
-        dest_gcs = "gs://" + GCS_BUCKET + "/input"
+        dest_gcs = "gs://" + GCS_BUCKET + "/input/"
     )
     
     comp_gcs_to_bq = GoogleCloudStorageToBigQueryOperator(
         task_id='gcs_to_bq',
-        bucket=GCS_BUCKET + "/input",
-        source_objects=['*.csv'],
+        bucket=GCS_BUCKET + "/input/",
+        source_objects=['*'],
         destination_project_dataset_table=GCP_PROJECTID+"."+BQ_DATASET+"."+BQ_TABLE,
         skip_leading_rows=1,
         #write_disposition='WRITE_TRUNCATE',
@@ -77,12 +80,30 @@ with models.DAG (
         source_format='CSV'
     )
 
+    beam_gcs_to_bq = BeamRunPythonPipelineOperator(
+    task_id="beam_gcs_to_bq",
+    runner="DataflowRunner",
+    py_file=GCS_PYTHON,
+    py_options=[],
+    pipeline_options={
+        'output': GCS_OUTPUT,
+    },
+    py_requirements=['apache-beam[gcp]==2.34.0'],
+    py_interpreter='python3',
+    py_system_site_packages=False,
+    dataflow_config={
+        "job_name": "start-python-job-async",
+        "location": 'us-central1',
+        "wait_until_finished": False,
+    },
+    )
+
     print_dag_endtime = bash_operator.BashOperator(
-        task_id = "print_dag_starttime",
+        task_id = "print_dag_endtime",
         bash_command = "echo S3 to GCS data transfer ended @ $(date)"
     )
     
-    wait_dag >> print_dag_starttime >> s3_to_gcs >> comp_gcs_to_bq >> print_dag_endtime
+    wait_dag >> print_dag_starttime >> s3_to_gcs >> [comp_gcs_to_bq, beam_gcs_to_bq] >> print_dag_endtime
     
     
     
