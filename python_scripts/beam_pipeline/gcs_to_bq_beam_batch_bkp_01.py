@@ -44,25 +44,26 @@ def parse_file(element):
   for line in csv.reader([element], quotechar='"', delimiter=',', quoting=csv.QUOTE_ALL, skipinitialspace=True):
     return line
 
-#'SplitData' >> beam.Map(lambda x: x.split(r',(?=")'))
-#'SplitData' >> beam.Map(lambda x: x.split(','))
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     known_args = parser.parse_known_args(argv)
 
     p = beam.Pipeline(options=PipelineOptions())
-
-'''
-
-    parsed_csv = (
-                    p 
-                    | 'Read input file' >> beam.io.ReadFromText('gs://indranil-24011994-04/input/National_Stock_Exchange_of_India_Ltd.csv', skip_header_lines =1)
-                    | 'Parse file' >> beam.Map(parse_file)
-                    | 'Print output' >> beam.Map(print_row)
-             )
+    
+    (p | 'ReadData' >> beam.dataframe.io.read_csv('gs://indranil-24011994-04/input/National_Stock_Exchange_of_India_Ltd.csv', sep=',', header=0, quotechar='"')
+       | 'WriteToBigQuery' >> beam.io.WriteToBigQuery(
+           '{0}:poc_composer_dataflow.df_stock_details'.format(project_id),
+           schema=v_schema,
+           write_disposition=beam.io.BigQueryDisposition.WRITE_APPEND))
+    result = p.run()
     
 '''
+    (p | 'Read input file' >> beam.io.ReadFromText('gs://indranil-24011994-04/input/National_Stock_Exchange_of_India_Ltd.csv', skip_header_lines =1)
+       | 'Parse file' >> beam.Map(parse_file)
+       | 'Print output' >> beam.Map(print_row))
+
+
     (p | 'ReadData' >> beam.io.ReadFromText('gs://indranil-24011994-04/input/National_Stock_Exchange_of_India_Ltd.csv', skip_header_lines =1)
        | 'SplitData' >> beam.Map(lambda x: x.split(","))
        | 'FormatToDict' >> beam.Map(lambda x: {"Symbol": x[0],"Open": x[1],"High": x[2],"Low": x[3],"LTP": x[4],"Chng": x[5],"PCChng": x[6],"Volume": x[7],"Turnover": x[8],"_52w_H": x[9],"_52w_L": x[10],"_365d_PC_chng": x[11],"_30d_PC_chng": x[12]}) 
@@ -72,20 +73,16 @@ if __name__ == "__main__":
        | 'WriteToBigQuery' >> beam.io.WriteToBigQuery(
            '{0}:poc_composer_dataflow.df_stock_details'.format(project_id),
            schema=v_schema,
-           write_disposition=beam.io.BigQueryDisposition.WRITE_APPEND))
+           write_disposition=beam.io.BigQueryDisposition.WRITE_APPEND))    
 
-    result = p.run()
-'''
+
     (p | 'ReadData' >> beam.dataframe.io.read_csv('gs://indranil-24011994-04/input/National_Stock_Exchange_of_India_Ltd.csv', sep=',', header=0, quotechar='"')
-       | 'FormatToDict' >> beam.Map(lambda x: {"Symbol": x[0],"Open": x[1],"High": x[2],"Low": x[3],"LTP": x[4],"Chng": x[5],"PCChng": x[6],"Volume": x[7],"Turnover": x[8],"_52w_H": x[9],"_52w_L": x[10],"_365d_PC_chng": x[11],"_30d_PC_chng": x[12]}) 
-       | 'DeleteIncompleteData' >> beam.Filter(discard_incomplete)
-       | 'ChangeDataType' >> beam.Map(convert_types)
-       | 'DeleteUnwantedData' >> beam.Map(del_unwanted_cols)
        | 'WriteToBigQuery' >> beam.io.WriteToBigQuery(
            '{0}:poc_composer_dataflow.df_stock_details'.format(project_id),
            schema=v_schema,
            write_disposition=beam.io.BigQueryDisposition.WRITE_APPEND))
+'''
 
- '''   
+ 
     
   
